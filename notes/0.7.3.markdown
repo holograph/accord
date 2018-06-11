@@ -1,0 +1,9 @@
+![Accord](https://raw.githubusercontent.com/wix/accord/master/assets/accord-logo-light.png?raw=1)
+
+Version 0.7.3 is a maintenance release, cleaning up the build and bumping support for Scala 2.13 to M2. No new features have been introduced.
+
+* Added support for Scala 2.13.0-M3 (in lieu of M2).
+* TBD
+
+As always, bug reports, pull requests and other ideas are welcome -- [join the discussion](https://gitter.im/wix/accord?utm_source=share-link&utm_medium=link&utm_campaign=share-link) on Gitter!
+

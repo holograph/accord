@@ -1,5 +1,8 @@
 import com.typesafe.sbt.pgp.PgpKeys._
+import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
+
 import Helpers._
+
 
 lazy val publishSettings = Seq(
   publishTo := {
@@ -52,7 +55,7 @@ def limitPackageSize( allowedSizeInKB: Int ) =
 lazy val compileOptions = Seq(
   scalaVersion := "2.12.6",
   crossScalaVersions := ( Helpers.javaVersion match {
-    case v if v >= 1.8 => Seq( "2.11.12", "2.12.6", "2.13.0-M2" )
+    case v if v >= 1.8 => Seq( "2.11.12", "2.12.6", "2.13.0-M3" )
     case _             => Seq( "2.11.12" )
   } ),
   scalacOptions ++= Seq(
@@ -80,7 +83,7 @@ lazy val noPublish = Seq( publish := {}, publishLocal := {}, publishArtifact := 
 // Projects --
 
 lazy val api =
-  crossProject
+  crossProject( JSPlatform, JVMPlatform )
     .crossType( CrossType.Pure )
     .in( file( "api" ) )
     .settings( Seq(
@@ -89,7 +92,11 @@ lazy val api =
         "Accord is a validation library written in and for Scala. Its chief aim is to provide a composable, " +
         "dead-simple and self-contained story for defining validation rules and executing them on object " +
         "instances. Feedback, bug reports and improvements are welcome!",
-      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.4" % "test",
+      libraryDependencies += { scalaVersion.value match {
+        case v if v startsWith "2.13" => "org.scalatest" %%% "scalatest" % "3.0.5-M1" % "test"
+        case _                        => "org.scalatest" %%% "scalatest" % "3.0.4" % "test"
+        }
+      },
       noFatalWarningsOn( configuration = Test )
     ) ++ baseSettings :_* )
   .jsSettings( limitPackageSize( 150 ) )
@@ -99,14 +106,18 @@ lazy val apiJVM = api.jvm
 lazy val apiJS = api.js
 
 lazy val scalatest =
-  crossProject
+  crossProject( JSPlatform, JVMPlatform )
     .crossType( CrossType.Pure )
     .in( file( "scalatest" ) )
     .dependsOn( api )
     .settings( baseSettings ++ Seq(
       name := "accord-scalatest",
       description := "ScalaTest matchers for the Accord validation library",
-      libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.4",
+      libraryDependencies += { scalaVersion.value match {
+        case v if v startsWith "2.13" => "org.scalatest" %%% "scalatest" % "3.0.5-M1"
+        case _                        => "org.scalatest" %%% "scalatest" % "3.0.4"
+        }
+      },
       noFatalWarningsOn( configuration = Test )
     ) :_* )
   .jsSettings( limitPackageSize( 100 ) )
@@ -115,7 +126,7 @@ lazy val scalatestJVM = scalatest.jvm
 lazy val scalatestJS = scalatest.js
 
 lazy val specs2 =
-  crossProject
+  crossProject( JSPlatform, JVMPlatform )
     .crossType( CrossType.Pure )
     .in( file( "specs2" ) )
     .dependsOn( api )
@@ -129,16 +140,13 @@ lazy val specs2 =
     )
     .jvmSettings(
       limitPackageSize( 80 ),
-      libraryDependencies += { scalaVersion.value match {
-        case v if v startsWith "2.13" => "org.specs2" %% "specs2-core" % "4.0.2"
-        case _                        => "org.specs2" %% "specs2-core" % "3.8.6"
-      } }
+      libraryDependencies += "org.specs2" %% "specs2-core" % "4.0.2"
     )
 lazy val specs2JVM = specs2.jvm
 lazy val specs2JS = specs2.js
 
 lazy val core =
-  crossProject
+  crossProject( JSPlatform, JVMPlatform )
     .crossType( CrossType.Pure )
     .in( file( "core" ) )
     .dependsOn( api, scalatest % "test->compile" )
@@ -161,7 +169,7 @@ lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
 lazy val java8 =
-  crossProject
+  crossProject( JSPlatform, JVMPlatform )
     .crossType( CrossType.Pure )
     .in( file( "java8" ) )
     .dependsOn( api, core, scalatest % "test->compile" )
